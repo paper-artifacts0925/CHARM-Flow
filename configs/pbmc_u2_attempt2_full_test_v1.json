@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "kind": "pbmc_u2_attempt2_official_full_test_shards",
+  "split": "test",
+  "perturbation_key": "cytokine",
+  "cell_type_key": "cell_type",
+  "batch_key": "donor",
+  "control": "PBS",
+  "heldout_donors": ["Donor1", "Donor4", "Donor9", "Donor12"],
+  "sampling_seed_roles": {"42": "headline", "20260811": "supplemental_optional"},
+  "expected": {
+    "cytokines": 62,
+    "cell_types": 18,
+    "nonempty_cytokine_cell_type_pairs": 1115,
+    "treated_cells": 2260453,
+    "control_cells": 235478,
+    "total_cells": 2495931,
+    "genes": 2000
+  },
+  "official_test_cytokines": [
+    "C5a", "TWEAK", "LIF", "IL-17C", "FGF-beta", "BAFF", "FLT3L",
+    "IFN-lambda2", "4-1BBL", "IL-17E", "IL-2", "IL-19", "PRL",
+    "IL-16", "IL-7", "GM-CSF", "IL-17A", "IL-13", "IL-36-alpha",
+    "PSPN", "EPO", "IL-9", "IL-31", "IL-11", "LT-alpha1-beta2",
+    "TL1A", "IL-32-beta", "IFN-omega", "IL-8", "Noggin", "IFN-epsilon",
+    "IL-17F", "Leptin", "IL-33", "IL-35", "OSM", "IL-34", "HGF",
+    "IL-1Ra", "LIGHT", "CD27L", "SCF", "IL-1-alpha", "TGF-beta1",
+    "CD30L", "IL-24", "IFN-gamma", "IFN-alpha1", "IFN-lambda1",
+    "GITRL", "VEGF", "ADSF", "IL-15", "EGF", "IL-3", "IL-17B",
+    "IL-6", "IL-4", "IL-10", "CT-1", "IFN-lambda3", "TRAIL"
+  ],
+  "cell_types": [
+    "B Intermediate/Memory", "B Naive", "CD14 Mono", "CD16 Mono",
+    "CD4 Memory", "CD4 Naive", "CD8 Memory", "CD8 Naive", "HSPC", "ILC",
+    "MAIT", "NK", "NK CD56bright", "NKT", "Plasmablast", "Treg", "cDC", "pDC"
+  ],
+  "control_cells_by_cell_type": {
+    "B Intermediate/Memory": 7029, "B Naive": 17297, "CD14 Mono": 50999,
+    "CD16 Mono": 6109, "CD4 Memory": 53882, "CD4 Naive": 39668,
+    "CD8 Memory": 17305, "CD8 Naive": 7756, "HSPC": 502, "ILC": 257,
+    "MAIT": 6804, "NK": 12853, "NK CD56bright": 3321, "NKT": 3501,
+    "Plasmablast": 219, "Treg": 3491, "cDC": 3471, "pDC": 1014
+  },
+  "shards": [
+    {
+      "id": 0, "expected_treated_cells": 304807, "expected_nonempty_pairs": 144,
+      "cytokines": ["C5a", "IL-16", "Leptin", "CD30L", "IFN-gamma", "IL-6", "IL-10", "CT-1"]
+    },
+    {
+      "id": 1, "expected_treated_cells": 325486, "expected_nonempty_pairs": 162,
+      "cytokines": ["TWEAK", "FGF-beta", "GM-CSF", "IL-17A", "IL-31", "LT-alpha1-beta2", "IL-33", "SCF", "IL-15"]
+    },
+    {
+      "id": 2, "expected_treated_cells": 325653, "expected_nonempty_pairs": 161,
+      "cytokines": ["LIF", "IL-19", "EPO", "IL-32-beta", "OSM", "CD27L", "TGF-beta1", "IL-24", "VEGF"]
+    },
+    {
+      "id": 3, "expected_treated_cells": 327417, "expected_nonempty_pairs": 162,
+      "cytokines": ["BAFF", "IL-2", "IL-13", "IL-11", "IL-35", "IL-1Ra", "IL-1-alpha", "IFN-alpha1", "ADSF"]
+    },
+    {
+      "id": 4, "expected_treated_cells": 327001, "expected_nonempty_pairs": 162,
+      "cytokines": ["FLT3L", "IFN-lambda2", "IL-36-alpha", "TL1A", "IFN-epsilon", "IL-34", "HGF", "IFN-lambda1", "GITRL"]
+    },
+    {
+      "id": 5, "expected_treated_cells": 324325, "expected_nonempty_pairs": 162,
+      "cytokines": ["4-1BBL", "IL-17E", "PRL", "IFN-omega", "Noggin", "EGF", "IL-3", "IL-17B", "IL-4"]
+    },
+    {
+      "id": 6, "expected_treated_cells": 325764, "expected_nonempty_pairs": 162,
+      "cytokines": ["IL-17C", "IL-7", "PSPN", "IL-9", "IL-8", "IL-17F", "LIGHT", "IFN-lambda3", "TRAIL"]
+    }
+  ]
+}

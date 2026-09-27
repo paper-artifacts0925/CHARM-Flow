@@ -1,0 +1,39 @@
+# Covariate encoding configuration
+
+# Encoding type selection
+pert_encoding: onehot
+celltype_encoding: llm
+drug_encoding: onehot
+replogle_gene_encoding: onehot # genept
+batch_encoding: onehot
+
+# Embedding dimensions
+hidden_dim: 128
+output_dim: ${..model.hidden_num.0}
+
+# Runtime-populated cardinalities
+num_pert: null # automaticallt filled in running
+num_celltype: null # automaticallt filled in running
+num_batch: null # automaticallt filled in running
+
+# Runtime-populated dictionaries
+pert_dict: null # automaticallt filled in running
+cell_type_dict: null # automaticallt filled in running
+batch_dict: null # automaticallt filled in running
+
+# Dictionary replacement controls
+replace_pert_dict: false
+# replace_all_dict: false
+
+# Multi-embedding gather strategy
+gather_strategy: concat
+
+# External embedding resources
+gene_embedding_path: ["${...path.tmp_dir}/gene_names/pbmc_highly_variavle_gene_emb_dict_emb_dict.pkl",
+                      "${...path.tmp_dir}/gene_names/replogle_gene_emb_dict_perturbation_emb_dict.pkl",
+                      "${...path.tmp_dir}/gene_names/replogle_highly_variavle_gene_emb_dict_emb_dict.pkl",
+                      "${...path.tmp_dir}/gene_names/tahoe100m_highly_variavle_gene_emb_dict_emb_dict.pkl"]
+pert_embedding_path: ${..path.tmp_dir}/meta_data/idx_to_pertemb.pkl
+celltype_embedding_path: ${..path.tmp_dir}/meta_data/new_all_emb.pkl
+drug_embedding_path: ${..path.tmp_dir}/meta_data/drug_embed_chemberta_cls_dict.pkl
+replogle_gene_embedding_path: ${..path.tmp_dir}/gene_names/replogle_gene_emb_dict_perturbation_emb_dict.pkl

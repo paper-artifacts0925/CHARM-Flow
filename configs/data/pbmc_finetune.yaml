@@ -1,0 +1,69 @@
+# PBMC finetuning dataset assembly
+
+data_name: PBMCFinetune
+
+defaults:
+  - perturb_data/pbmc@pbmc
+  - _self_
+
+# Dataset source and gene assets
+dataset_name: ${.pbmc.dataset_name}
+dataset_path: ${.pbmc.dataset_path}
+selected_gene_file: ${.pbmc.selected_gene_file}
+indices_cache_dir: ${..path.indices_cache_dir}
+
+# Columns and control semantics
+pert_col: ${.pbmc.pert_col} # cytokine
+rnaseq_batch_col: null
+perturbseq_batch_col: ${.pbmc.perturbseq_batch_col} # donor
+cell_type_key: null
+cell_line_key: ${.pbmc.cell_line_key} # cell_type
+control_pert: ${.pbmc.control_pert} # "PBS"
+
+# Embedding space
+embed_key: X_hvg
+output_space: gene # {gene, latent}
+embed_shape: ${..model.input_dim}
+
+# Sampling and pairing behavior
+use_cell_set: 16
+optimizer_batch_size: ${..optimization.micro_batch_size}
+sample_cell_set_strategy: same_lpb
+use_fixed_pairing: true
+
+# Basal/control mapping
+basal_mapping_strategy: random # {batch, random, nearest, ot}
+n_basal_samples: 1
+should_yield_control_cells: true
+map_controls: true
+keep_control_cell: false
+
+# Preprocessing / dataloader
+normalize_counts: false
+pin_memory: true
+max_open_files: 16
+num_workers: 0
+prefetch_factor: null
+persistent_workers: false
+
+# Collate / selection
+pad_length: 2000
+select_strategy: "sum"
+mapping_strategy: random
+split_control: false
+sort_gene_names: false
+
+# Split definitions
+holdout_celltype: ${.pbmc.holdout_celltype}
+holdout_batches: ${.pbmc.holdout_batches}
+holdout_pert:
+  validation: ${..pbmc.holdout_pert.validation}
+  test: ${..pbmc.holdout_pert.test}
+random_holdout_ratio: 0.0005
+
+# Scenario filters
+skip_tahoe100m: false
+sample_pbmc_only: false
+sample_replogle_only: false
+sample_tahoe100m_only: false
+skip_cached_indices: false

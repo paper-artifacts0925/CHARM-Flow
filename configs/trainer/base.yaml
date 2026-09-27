@@ -1,0 +1,32 @@
+# PyTorch Lightning trainer defaults
+
+# Hardware / distributed
+accelerator: "gpu"
+devices: -1 # -1 enables all GPUs, use [0] to enable one GPU
+num_nodes: 1
+use_distributed_sampler: false
+
+# Output / run behavior
+default_root_dir: ${..path.diffusion.save_dir} # required
+enable_checkpointing: true
+enable_model_summary: true
+enable_progress_bar: true
+deterministic: true
+
+# Logging / validation cadence
+check_val_every_n_epoch: 1
+val_check_interval: 1.0 # validate after one training epoch
+log_every_n_steps: 20
+num_sanity_val_steps: 0
+
+# Step / epoch limits
+max_epochs: null
+max_steps: 1560300
+limit_train_batches: null
+limit_val_batches: null
+
+# Optimization runtime
+precision: 32-true
+gradient_clip_val: 1.0
+accumulate_grad_batches: 1
+reload_dataloaders_every_n_epochs: 1

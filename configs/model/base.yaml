@@ -1,0 +1,204 @@
+# Diffusion model and backbone defaults
+
+# Checkpoint loading
+ckpt_path: null
+model_weight_ckpt_path: null
+partial_weight_use_ema: false
+partial_weight_ckpt_path: null
+partial_weight_ckpt_sha256: null
+# Launcher-audited policy for architecture-changing warm starts. The loader
+# reports every non-matching key; formal launchers must additionally resolve
+# these fields and fail closed unless the exception set is reviewed.
+partial_weight_strict_coverage: false
+partial_weight_min_matched_keys: 0
+partial_weight_allowed_missing_keys: []
+partial_weight_allowed_missing_prefixes: []
+partial_weight_allowed_unexpected_keys: []
+
+# Architecture-changing response-Parent gate warm start.  Formal launchers
+# must opt in, name the exact full PlModel parameter prefixes, and repeat those
+# prefixes in partial_weight_allowed_missing_prefixes.  All other parameters,
+# including cov_encoder, are frozen after the audited EMA partial load.
+
+# Backbone selection
+model_type: "Cross_DiT"
+Block_type: MM_DiT
+
+# DiT architecture
+dit_input_size: 1
+dit_depth: 8
+dit_num_heads: 8
+qk_norm: True
+
+# Input/output behavior
+input_dim: 2000
+hidden_num: [2000,512] # [input_dim, hidden_dim]
+dropout: 0.1
+output_fn: "relu"
+
+# Embedding / conditioning
+use_orig_gene_count_as_emb: True
+class_emb_gather_strategy: ${..cov_encoding.gather_strategy}
+class_emb_hidden_dimension: ${..cov_encoding.hidden_dim}
+use_gene_embedding: False
+gene_embedding_type: "linear"
+
+# Control conditioning
+p_drop_cond: 0.5
+p_drop_control: 0.5
+
+# Generative process. Rectified flow uses an unconstrained velocity head.
+generative_process: diffusion
+flow_sampling_steps: 50
+flow_time_scale: 1000.0
+flow_time_mean: -0.8
+flow_time_std: 0.8
+flow_final_nonnegative: true
+flow_final_max: 0.85
+
+# Diffusion process
+steps: 1000
+learn_sigma: False
+sigma_small: False
+noise_schedule: "linear"
+noise_schedule_gamma: 0.3
+use_kl: False
+predict_xstart: True
+rescale_timesteps: False
+rescale_learned_sigmas: False
+
+schedule_sampler: "uniform"
+
+# Weight sharing / layer behavior
+use_class_silu: false
+separate_embedder: false
+replace_batch_encoder: false
+
+# Runtime-populated metadata
+dataset_dict: null
+
+# Training toggles
+cutoff: 1e-4
+no_mse_loss: false
+latent_control_mixture: false
+latent_control_temperature: 1.0
+latent_control_temperature_start: null
+latent_control_temperature_end: null
+latent_control_temperature_anneal_steps: 0
+latent_control_min_perturb_cells: 0
+latent_control_responsibility_level: set
+latent_control_delta_score_weight: 0.0
+latent_control_delta_magnitude_score_weight: 0.0
+latent_control_delta_score_weight_start: null
+latent_control_delta_score_weight_end: null
+latent_control_delta_score_warmup_steps: 0
+latent_control_delta_score_start_step: 0
+
+# Adaptive State-Anchor: fixed DDP capacity, learned effective state count
+adaptive_anchor_enabled: false
+adaptive_anchor_num_cluster_embeddings: 64
+adaptive_anchor_hidden_dim: 128
+adaptive_anchor_parent_kv_enabled: false
+adaptive_anchor_parent_kv_every_n_blocks: 2
+adaptive_anchor_parent_kv_num_heads: 8
+adaptive_anchor_parent_kv_dropout: 0.0
+adaptive_anchor_parent_memory_mode: "legacy"
+adaptive_anchor_parent_memory_num_patches: 16
+adaptive_anchor_parent_memory_program_rank: 4
+adaptive_anchor_parent_kv_explicit_perturbation_query: false
+adaptive_anchor_offset_rank: 16
+adaptive_anchor_split_factor: 2
+adaptive_anchor_offset_scale: 0.1
+adaptive_anchor_objectness_threshold: 0.5
+adaptive_anchor_lr_multiplier: 5.0
+adaptive_anchor_num_views: 3
+adaptive_anchor_residual_alpha_start: 0.0
+adaptive_anchor_residual_alpha_end: 0.5
+adaptive_anchor_residual_start_step: 2000
+adaptive_anchor_residual_warmup_steps: 8000
+adaptive_anchor_delta_loss_weight: 0.1
+adaptive_anchor_direction_loss_weight: 0.05
+adaptive_anchor_direction_loss_start_step: 500
+adaptive_anchor_direction_loss_warmup_steps: 2000
+adaptive_anchor_pair_consistency_weight: 0.05
+adaptive_anchor_pair_consistency_start_step: 2000
+adaptive_anchor_pair_consistency_warmup_steps: 4000
+adaptive_anchor_pair_min_occupancy: 0.05
+adaptive_anchor_occupancy_loss_weight: 0.05
+adaptive_anchor_parent_prior_weight: 0.02
+adaptive_anchor_offset_l2_weight: 0.01
+adaptive_anchor_diversity_weight: 0.01
+adaptive_anchor_diversity_margin: 0.005
+adaptive_anchor_objectness_l1_weight: 0.001
+adaptive_anchor_objectness_start_step: 10000
+adaptive_anchor_objectness_loss_weight: 0.05
+adaptive_anchor_objectness_loss_start_step: 2000
+adaptive_anchor_objectness_loss_warmup_steps: 4000
+adaptive_anchor_gradient_finite_warmup_steps: 20
+adaptive_anchor_gradient_finite_interval: 1000
+
+# Stateful online EM: soft history and per-key child-slot hysteresis.
+online_anchor_em_enabled: false
+online_anchor_em_num_cells: 643413
+online_anchor_em_max_leaves: 8
+online_anchor_em_feature_dim: 64
+online_anchor_em_burn_in_steps: 4000
+online_anchor_em_history_ramp_steps: 20000
+online_anchor_em_history_max_weight: 0.35
+online_anchor_em_stale_half_life_steps: 50000.0
+online_anchor_em_occupancy_half_life_cells: 256.0
+online_anchor_em_prototype_half_life_cells: 128.0
+online_anchor_em_activate_threshold: 0.03
+online_anchor_em_deactivate_threshold: 0.005
+online_anchor_em_activate_patience: 3
+online_anchor_em_deactivate_patience: 20
+online_anchor_em_probe_interval: 200
+
+# MATCH-FM: inference-consistent set-constrained latent matching
+match_fm_enabled: false
+match_fm_prior_hidden_dim: 64
+match_fm_num_cluster_embeddings: 64
+match_fm_empirical_prior_scale: 1.0
+match_fm_use_cluster_identity: false
+match_fm_prior_loss_weight: 0.1
+match_fm_set_constraint: true
+match_fm_marginal_strength: 1.0
+match_fm_set_iterations: 12
+match_fm_set_damping: 0.5
+match_fm_row_prior_scale: 0.0
+match_fm_ema_teacher: false
+match_fm_ema_decay: 0.999
+match_fm_ema_update_every: 1
+match_fm_ema_start_step: 0
+match_fm_teacher_time_min: 0.1
+match_fm_teacher_time_max: 0.5
+match_fm_reliable_gene_energy: false
+match_fm_reliability_max_weight: 20.0
+match_fm_pca_basis_path: null
+match_fm_pca_score_weight: 0.0
+match_fm_energy_normalization: false
+match_fm_energy_clip: 5.0
+match_fm_lagged_prior: false
+match_fm_prior_ema_decay: 0.99
+match_fm_prior_ema_update_every: 1
+match_fm_prior_ema_start_step: 0
+match_fm_prior_blend_start: 1.0
+match_fm_prior_blend_end: 1.0
+match_fm_prior_blend_steps: 0
+match_fm_prior_empirical_kl_weight: 0.0
+match_fm_confidence_shrinkage: false
+match_fm_confidence_power: 1.0
+match_fm_confidence_max: 1.0
+match_fm_generator_warmup_steps: 0
+latent_control_delta_center_genes: true
+latent_control_learned_scoring: false
+latent_control_num_cluster_embeddings: 64
+latent_control_cluster_embedding_dim: 16
+
+# Fine-tuning layer replacement / init
+replace_2kgene_layer: false
+replace_1w2gene_layer: false
+reinitial_adaln: false
+reinitial_all: false
+reinitial_all_from_scratch: false
+compare_model_representation: null

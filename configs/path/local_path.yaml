@@ -1,0 +1,19 @@
+# Reproduction-local paths. Values are injected by scripts/common_replogle.sh.
+wandb:
+  logging_dir: ${oc.env:OUTPUT_ROOT}/wandb
+diffusion:
+  save_dir: ${oc.env:OUTPUT_ROOT}/training
+
+tmp_dir: ${oc.env:PERTURB_DATA_ROOT}
+tahoe100m_dir: ${.tmp_dir}/finetune_data/tahoe100m_full_selected_processed_new/
+pbmc_dir: ${.tmp_dir}/finetune_data/pbmc_new/
+replogle_dir: ${.tmp_dir}/finetune_data/nadig_processed_data/
+cellxgene_dir: ${.tmp_dir}/cellxgene_merged_zst/
+selected_gene_dir: ${.tmp_dir}/selected_genes/
+indices_cache_dir: ${.tmp_dir}/indices_cache/
+gene_mapping_file: ${.tmp_dir}/selected_genes/vocab_id2name.csv
+replogle_ctrl_h5ad: ${.replogle_dir}/replogle.h5ad
+pbmc_ctrl_h5ad: ${.tmp_dir}/tmp_pbmc_ctrl.h5ad
+tahoe100m_ctrl_h5ad: ${.tmp_dir}/tmp_ourtahoe_ctrl.h5ad
+tahoe100m_cellname_to_cellline_pkl: ${.tmp_dir}/meta_data/cellname_to_cellline.pkl
+

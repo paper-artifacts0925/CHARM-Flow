@@ -1,0 +1,121 @@
+# Dataset-neutral Parent-locked U2 core for OCOO-T datasets.
+#
+# Every scientific artifact is deliberately null here.  The dataset launcher
+# injects only hash-verified PBMC or Tahoe100M artifacts.  This prevents a
+# disabled-but-still-Replogle path from silently entering a new dataset run.
+
+defaults:
+  - parent_residual_gene_dit
+  - _self_
+
+# Keep the proven G12 capacity and full Child-bank conditioning.
+parent_residual_hidden_dim: 384
+parent_residual_depth: 12
+parent_residual_num_heads: 8
+parent_residual_strong_condition_memory_enabled: true
+
+# Dataset-specific Parent floor (required and SHA-pinned by the launcher).
+parent_residual_artifact_path: null
+parent_residual_artifact_sha256: null
+parent_residual_prior_mode: equal_line
+parent_residual_calibration: no_intercept
+parent_residual_normalization_divisor: 10.0
+
+# No dataset-external Parent adapter in the first PBMC/Tahoe run.
+parent_residual_fewshot_adapter_enabled: false
+parent_residual_fewshot_adapter_artifact_path: null
+parent_residual_fewshot_adapter_artifact_sha256: null
+
+# U2 source/matching core.
+parent_residual_positive_multiplicity_step_enabled: true
+parent_residual_positive_multiplicity_step_values: [32, 16, 8, 4, 2, 1]
+parent_residual_positive_multiplicity_step_transitions: [500, 1200, 2200, 3500, 5000]
+# Dataset-neutral default: do not silently change the scheduled matching
+# multiplicity. A dataset must opt in explicitly when its audited adaptive
+# Child bank contains fewer active prototypes than the schedule requests.
+parent_residual_positive_multiplicity_cap_to_active_children: false
+parent_residual_beta: 0.0
+parent_residual_beta_std: 0.0
+parent_residual_prior_stochastic: true
+parent_residual_inference_child_sampling_mode: legacy
+parent_residual_correction_max_scale: 0.05
+
+parent_residual_real_control_source_enabled: true
+parent_residual_real_control_reservoir_path: null
+parent_residual_real_control_reservoir_sha256: null
+parent_residual_real_control_residual_scale: 1.0
+parent_residual_real_control_stochastic: true
+parent_residual_real_control_validate_prototypes: true
+
+parent_residual_locked_flow_enabled: true
+parent_residual_locked_min_group_cells: 32
+parent_residual_matched_set_enabled: true
+parent_residual_matched_resume_opt_in: false
+parent_residual_posterior_start_fraction: 1.0
+parent_residual_posterior_end_fraction: 0.0
+parent_residual_posterior_transition_start_step: 2500
+parent_residual_posterior_transition_end_step: 6000
+parent_residual_posterior_curve: cosine
+parent_residual_posterior_source_stochastic: true
+
+# Retain the matched endpoint-set term, but require a dataset-specific PCA.
+parent_residual_set_loss_weight: 3.0e-4
+parent_residual_set_pca_path: null
+parent_residual_set_pca_sha256: null
+parent_residual_set_pca_components: 64
+parent_residual_set_energy_weight: 1.0
+parent_residual_set_log_variance_weight: 0.25
+parent_residual_set_correlation_weight: 0.05
+parent_residual_set_mean_weight: 0.0
+parent_residual_set_min_cells_per_group: 32
+parent_residual_set_max_cells_per_group: 256
+
+# The matching teacher and condition-level Router calibration need no
+# Replogle-derived artifact and remain part of the compact matched-set core.
+parent_residual_teacher_delta_weight: 1.0e-2
+parent_residual_teacher_direction_weight: 2.0e-4
+parent_residual_teacher_magnitude_weight: 5.0e-4
+parent_residual_teacher_latent_weight: 1.0e-3
+parent_residual_parent_mse_weight: 1.0
+parent_residual_parent_direction_weight: 5.0e-4
+parent_residual_parent_pearson_weight: 2.0e-4
+parent_residual_correction_l2_weight: 1.0e-2
+parent_residual_condition_router_kl_enabled: true
+parent_residual_router_kl_weight: 1.0e-4
+parent_residual_latent_match_weight: 5.0e-5
+
+# U2: row marginals are exact; columns are softly penalized by rho=1.
+parent_residual_semi_balanced_ot_enabled: true
+parent_residual_semi_balanced_ot_epsilon: 0.1
+parent_residual_semi_balanced_ot_rho: 1.0
+parent_residual_semi_balanced_ot_iterations: 50
+parent_residual_semi_balanced_ot_cost_median_normalization: true
+
+# Replogle-only objective/artifact families are explicitly absent.
+parent_residual_de_aware_enabled: false
+parent_residual_de_aware_artifact_path: null
+parent_residual_de_aware_artifact_sha256: null
+parent_residual_hurdle_geometry_enabled: false
+parent_residual_sparse_support_enabled: false
+parent_residual_hurdle_artifact_path: null
+parent_residual_hurdle_artifact_sha256: null
+parent_residual_hurdle_source_h5ad_path: null
+parent_residual_hurdle_source_h5ad_sha256: null
+parent_residual_sparse_joint_context_enabled: false
+
+parent_residual_soft_gated_regression_enabled: false
+parent_residual_soft_gate_blend: 0.0
+parent_residual_soft_gate_detach_regression: false
+parent_residual_soft_gate_warmup_steps: 0
+parent_residual_gene_relation_enabled: false
+
+# Always start each dataset from scratch.
+ckpt_path: null
+model_weight_ckpt_path: null
+partial_weight_ckpt_path: "null"
+partial_weight_ckpt_sha256: null
+partial_weight_strict_coverage: false
+partial_weight_min_matched_keys: 0
+
+p_drop_cond: 0.0
+p_drop_control: 0.0

@@ -1,0 +1,76 @@
+# Tahoe100M finetuning dataset assembly
+
+data_name: Tahoe100mFinetune
+
+defaults:
+  - perturb_data/tahoe100m@tahoe100m
+  - _self_
+
+# Dataset source and gene assets
+dataset_name: ${.tahoe100m.dataset_name}
+dataset_path: ${.tahoe100m.dataset_path}
+selected_gene_file: ${.tahoe100m.selected_gene_file}
+indices_cache_dir: ${..path.indices_cache_dir}
+
+# Columns and control semantics
+pert_col: ${.tahoe100m.pert_col} # drugname_drugconc
+rnaseq_batch_col: null
+perturbseq_batch_col: ${.tahoe100m.perturbseq_batch_col} # plate
+cell_type_key: null
+cell_line_key: ${.tahoe100m.cell_line_key} # cell_line
+control_pert: ${.tahoe100m.control_pert} # "[('DMSO_TF', 0.0, 'uM')]"
+
+# Embedding space
+embed_key: X_hvg
+output_space: gene
+embed_shape: ${..model.input_dim}
+
+# Sampling and pairing behavior
+use_cell_set: null # 16
+optimizer_batch_size: ${..optimization.micro_batch_size}
+sample_cell_set_strategy: same_lpb
+use_fixed_pairing: true
+
+# Basal/control mapping
+basal_mapping_strategy: random # {batch, random, nearest, ot}
+n_basal_samples: 1
+should_yield_control_cells: true
+map_controls: true
+keep_control_cell: false
+
+# Preprocessing / dataloader
+normalize_counts: false
+pin_memory: true
+max_open_files: 16
+num_workers: 0
+prefetch_factor: null
+persistent_workers: false
+
+# Collate / selection
+pad_length: 2000
+select_strategy: "sum"
+mapping_strategy: random
+control_bank_path: null
+control_bank_sampler_type: original
+control_bank_seed: 0
+control_distribution_context_path: null
+control_context_mode: original
+latent_control_use_cluster_sets: false
+latent_control_top_k: 2
+latent_control_min_prior: 1e-8
+split_control: false
+sort_gene_names: false
+
+# Split definitions
+holdout_celltype: ${.tahoe100m.holdout_celltype}
+holdout_batches: ${.tahoe100m.holdout_batches}
+holdout_pert:
+  validation: ${..tahoe100m.holdout_pert.validation}
+  test: ${..tahoe100m.holdout_pert.test}
+random_holdout_ratio: 0.0005
+
+# Scenario filters
+sample_replogle_only: false
+sample_pbmc_only: false
+sample_tahoe100m_only: false
+skip_cached_indices: false

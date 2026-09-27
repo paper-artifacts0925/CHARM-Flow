@@ -1,0 +1,17 @@
+# Optimization preset
+# - Keep optimizer/scheduler presets in defaults
+# - Keep global training loss switches and seeds here
+
+defaults:
+  - _self_
+  - optimizer: adam
+  - scheduler: cosine
+
+# Batch size and randomness
+micro_batch_size: 128
+seed: 42
+
+# Loss toggles
+MMD_loss: True
+MMD_loss_factor: 1.0
+use_mse_loss: true

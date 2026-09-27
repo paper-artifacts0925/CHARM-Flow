@@ -1,0 +1,97 @@
+# Replogle finetuning dataset assembly
+
+data_name: ReplogleFinetune
+
+defaults:
+  - perturb_data/replogle@replogle
+  - _self_
+
+# Dataset source and gene assets
+dataset_name: ${.replogle.dataset_name}
+dataset_path: ${.replogle.dataset_path}
+selected_gene_file: ${.replogle.selected_gene_file}
+indices_cache_dir: ${..path.indices_cache_dir}
+
+# Columns and control semantics
+pert_col: ${.replogle.pert_col} # gene
+rnaseq_batch_col: null
+perturbseq_batch_col: ${.replogle.perturbseq_batch_col} # gem_group
+cell_type_key: null
+cell_line_key: ${.replogle.cell_line_key} # cell_line
+control_pert: ${.replogle.control_pert} # "non-targeting"
+
+# Embedding space
+embed_key: X_hvg
+output_space: gene
+embed_shape: ${..model.input_dim}
+
+# Sampling and pairing behavior
+use_cell_set: 16
+optimizer_batch_size: ${..optimization.micro_batch_size}
+sample_cell_set_strategy: same_lpb
+use_fixed_pairing: true
+# A/B/C combinations stay together on one device and optimizer step.
+meta_batch_episode_enabled: false
+meta_batch_num_views: 3
+meta_batch_episodes_per_batch: 1
+meta_batch_dynamic_views: false
+meta_batch_set_views_per_batch: null
+meta_batch_min_views: 2
+meta_batch_max_views: 5
+
+# Basal/control mapping
+basal_mapping_strategy: random # {batch, random, nearest, ot}
+n_basal_samples: 1
+should_yield_control_cells: true
+map_controls: true
+keep_control_cell: false
+disable_control_mapping: false
+
+# Perturbation mixing (G4+)
+pert_mix_enabled: false
+pert_mix_prob: 0.5
+
+# Preprocessing / dataloader
+normalize_counts: false
+pin_memory: true
+max_open_files: 16
+num_workers: 0
+prefetch_factor: null
+persistent_workers: false
+
+# Collate / selection
+pad_length: 2000
+select_strategy: "sum"
+mapping_strategy: random
+control_bank_path: null
+control_bank_sampler_type: original
+control_bank_seed: 0
+control_distribution_context_path: null
+control_context_mode: original
+latent_control_use_cluster_sets: false
+cell_detr_unique_control_bank: false
+source_transport_bank_path: null
+source_transport_scope: null
+latent_control_top_k: 2
+latent_control_min_prior: 1e-8
+latent_control_candidate_strategy: all
+latent_control_num_candidate_samples: 0
+latent_control_include_top_k: 0
+latent_control_fixed_max_k: false
+split_control: false
+sort_gene_names: false
+
+# Split definitions
+holdout_celltype: ${.replogle.holdout_celltype}
+holdout_batches: ${.replogle.holdout_batches}
+holdout_pert:
+  validation: ${..replogle.holdout_pert.validation}
+  test: ${..replogle.holdout_pert.test}
+random_holdout_ratio: 0.0005
+evaluation_splits: null
+
+# Scenario filters
+sample_replogle_only: false
+sample_pbmc_only: false
+sample_tahoe100m_only: false
+skip_cached_indices: false

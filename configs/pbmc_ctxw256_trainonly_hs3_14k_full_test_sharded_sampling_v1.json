@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "kind": "pbmc_ctxw256_trainonly_hs3_14k_official_full_test_sharded_sampling_v1",
+  "base_protocol": "configs/pbmc_u2_attempt2_full_test_v1.json",
+  "base_protocol_sha256": "7512c533971b85344f1a2f13a7b84af0729c46eddaf41e4e643482d5a331a976",
+  "sampling_protocol": "sharded_sampling_v1",
+  "shard_count": 7,
+  "rng_rule": "derived_seed=(base_seed+1000003*(shard_id+1)) mod 4294967295",
+  "monolithic_seed_bit_equivalent": false,
+  "headline_base_seed": 42,
+  "supplemental_optional_base_seed": 20260811,
+  "gpu_map": [0, 1, 2, 3, 4, 5, 6],
+  "runtime": {
+    "micro_batch_size": 512,
+    "use_cell_set": 1,
+    "use_ddim": true,
+    "initial_state": "parent_residual",
+    "guidance_strength": 0.0,
+    "normalize_counts": 10,
+    "append_controls_per_shard": false
+  },
+  "model": {
+    "run": "pbmc_ctxw256_trainonly_hs3_14k_s42_v1_formal14000",
+    "global_step": 14000,
+    "epoch": 2,
+    "state_dict_entries": 637,
+    "parent_residual_context_hidden_dim": 256,
+    "parent_residual_parent_grouping": "celltype",
+    "parent_residual_real_control_grouping": "celltype",
+    "parent_residual_semi_balanced_ot_rho": 1.0,
+    "train_only_de_aware": true,
+    "train_only_hurdle_geometry": true,
+    "train_only_sparse_support": true
+  },
+  "artifacts": {
+    "final_export_sha256": "a083cff84245b644ebf0e67d7cf0da6963ac77467edb2f7d511ee0d6bed610ab",
+    "exact_checkpoint_sha256": "5d80fd20c3a8f401a91478783c2b009cb15f698572121f5af29a9e8cd7767da4",
+    "resolved_training_config_sha256": "14b047454c5e2f5fd81c6abcb872298cf8198556288c82d52cbe9fa042790f14",
+    "artifact_manifest_sha256": "1997afa2d925024e5f2da228a73c66e80b47712f42b0b49f478e2f1c91479015",
+    "parent_sha256": "7a0a765541db4addb79683f4f4c34a1cab3eb92efd546e776ac26676d78995d3",
+    "context_npz_sha256": "ae2e55e3a7f4a0e333e65b9efa90ff91ce5736363d199a037e4110119312b17d",
+    "context_runtime_sha256": "042781bccbe65c8b77f18cb0c16bec5ecc52b3fd06a2569172708ce688494f90",
+    "reservoir_sha256": "79c958ab60dbdb277876a062d453583a9a2b02b546c5a2fd3a974c04f35c818a",
+    "set_pca_sha256": "bf123768469db7d084339f039a268c1b41055f9d65089c354a6a45c02e58045e",
+    "group_indices_cache_sha256": "feb67093ad59f2eff2d82cff649323ad037d72740c5c595d1edef088b6fb56e7",
+    "group_counts_cache_sha256": "8ac332a419a3c978e49ce907b6063a7419291ec494d7f51e96bcc43990f68219",
+    "selected_genes_sha256": "d0593d524caeaf431a9a0ac3ffeb5d192aea20e9bc891ea059fc94180ff04089",
+    "canonical_pbs_control_sha256": "d298123fefd2b5e7a1095b9f8bb7910c1406a285bbfcf9b763af348b49a2c49f",
+    "train_de_labels_sha256": "416beddd77cff1c675d8ab6fca3dcaa9deed39b0ea762d8dd88242a92cf24f47",
+    "train_hurdle_zero_rates_sha256": "6acdae0a9ab7d9da9cba62614a753a6c47c421bdc05003aa2763089adb0bcd19",
+    "train_source_provenance_sha256": "30f125ebe41ed9342a7ff3d977acbe9a4f356365c081432d523be9a6d23f5767"
+  }
+}

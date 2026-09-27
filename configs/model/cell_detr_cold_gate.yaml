@@ -1,0 +1,73 @@
+defaults:
+  - base
+  - _self_
+
+model_type: "cell_detr_cross_dit"
+generative_process: "rectified_flow"
+cell_detr_enabled: true
+
+# Isolated from all legacy matching implementations.
+hungarian_flow_enabled: false
+latent_control_mixture: false
+adaptive_anchor_enabled: false
+match_fm_enabled: false
+online_anchor_em_enabled: false
+
+# Parent is the occupancy-weighted cell-line context; Children are 128 states.
+cell_detr_anchor_capacity: 128
+cell_detr_hidden_dim: 128
+cell_detr_num_heads: 8
+cell_detr_parent_depth: 2
+cell_detr_dropout: 0.0
+cell_detr_max_child_similarity: 0.85
+
+# The biological teacher never sees Router logits.
+cell_detr_endpoint_cost_weight: 1.0
+cell_detr_direction_cost_weight: 0.25
+cell_detr_magnitude_cost_weight: 0.05
+cell_detr_router_cost_weight: 0.0
+cell_detr_matching_temperature: 0.25
+
+# Broad exploration first, then exact one-to-one matching.
+cell_detr_positive_multiplicities: [32, 16, 8, 4, 2, 1]
+cell_detr_multiplicity_transition_epochs: [4, 8, 14, 20, 25]
+
+# Child, Parent, latent matcher, and student-gate supervision.
+cell_detr_delta_loss_weight: 0.10
+cell_detr_direction_loss_weight: 0.05
+cell_detr_magnitude_loss_weight: 0.01
+cell_detr_router_loss_weight: 0.05
+cell_detr_latent_match_loss_weight: 0.05
+cell_detr_gate_loss_weight: 0.05
+cell_detr_parent_auxiliary_loss_weight: 1.0
+cell_detr_compactness_loss_weight: 0.0
+cell_detr_separation_loss_weight: 0.001
+cell_detr_context_scale: 0.1
+
+# Parent-first cold start. Margin is relative Child improvement over Parent.
+cell_detr_cold_start_gate_enabled: true
+cell_detr_cold_start_parent_epochs: 3
+cell_detr_cold_start_transition_end_epoch: 20
+cell_detr_gate_initial_probability: 0.02
+cell_detr_gate_relative_margin_start: 0.30
+cell_detr_gate_relative_margin_end: 0.02
+cell_detr_gate_temperature_start: 0.08
+cell_detr_gate_temperature_end: 0.04
+cell_detr_gate_exploration_start: 0.10
+cell_detr_gate_exploration_end: 0.02
+
+# Router is a student of target-only gain labels and starts from occupancy.
+cell_detr_cold_start_router_loss_weight_start: 0.005
+cell_detr_cold_start_router_loss_weight_end: 0.05
+cell_detr_router_temperature_start: 2.0
+cell_detr_router_temperature_end: 1.0
+cell_detr_router_occupancy_logit_weight_start: 1.0
+cell_detr_router_occupancy_logit_weight_end: 0.1
+cell_detr_balance_target_power_start: 0.5
+cell_detr_balance_target_power_end: 1.0
+cell_detr_balance_loss_weight_start: 0.005
+cell_detr_balance_loss_weight_end: 0.0
+
+# Test-time routing uses no observed response cell.
+cell_detr_inference_temperature: 1.0
+cell_detr_inference_occupancy_logit_weight: 0.1

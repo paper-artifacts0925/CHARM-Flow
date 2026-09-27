@@ -1,0 +1,41 @@
+# Lightning module/data module wiring
+
+model_module:
+  _target_: src.models.lightning.lightning_module.PlModel
+  py_logger: null
+  optimizer_cfg: null
+  model_cfg: null
+
+data_module:
+  _target_: src.data.data_module.data_module.PretrainingDataModule
+
+# EMA callback settings
+ema:
+  decay: 0
+  update_steps: 1
+
+# Callback presets
+callbacks:
+  checkpoint:
+    _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    every_n_train_steps: 20000
+    every_n_epochs: null
+    save_top_k: 3
+    monitor: "validation_validation_loss_epoch"
+    mode: "min"
+    filename: "{epoch}-{step}-{validation_random_Perturbseq_loss:.2f}"
+    save_last: True
+    dirpath: null
+  lr_monitor:
+    _target_: pytorch_lightning.callbacks.LearningRateMonitor
+    logging_interval: "step"
+  progress_bar:
+    _target_: pytorch_lightning.callbacks.progress.TQDMProgressBar
+    refresh_rate: 10
+
+# Logger preset
+logger:
+  _target_: pytorch_lightning.loggers.WandbLogger
+  save_dir: ${...path.wandb.logging_dir}
+  project: "diffusion_pertub"
+  name: ${...run_name}

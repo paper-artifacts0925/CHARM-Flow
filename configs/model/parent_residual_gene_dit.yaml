@@ -1,0 +1,465 @@
+# Strong Parent baseline + gene-module residual rectified flow.
+# Matching remains an auxiliary biological teacher; target endpoints never
+# choose the FM source used by training or inference.
+
+defaults:
+  - cell_detr_cold_gate
+  - _self_
+
+model_type: "parent_residual_gene_dit"
+generative_process: "rectified_flow"
+parent_residual_enabled: true
+cell_detr_enabled: false
+anchor_bridge_enabled: false
+hungarian_flow_enabled: false
+latent_control_mixture: false
+adaptive_anchor_enabled: false
+match_fm_enabled: false
+online_anchor_em_enabled: false
+
+# Explicit artifact/runtime Parent identity. Historical experiments remain
+# cell-type keyed; PBMC donor-Parent runs override this to donor.
+parent_residual_parent_grouping: celltype
+
+# Audited, pickle-free Replogle artifact. Inference priors are persisted in the
+# checkpoint; train pseudobulk supervision is loaded as non-persistent state.
+parent_residual_artifact_path: "resources/artifacts/parent_residual_gene_dit/replogle_parent_residual_v1.npz"
+parent_residual_artifact_sha256: "00dc083d6fb71abf355a15b1cedd1c61302a90a3c4a58e54df5e305696780420"
+parent_residual_prior_mode: "equal_line"
+parent_residual_calibration: "no_intercept"
+parent_residual_normalization_divisor: 10.0
+
+# Optional target-line few-shot Parent adapter. It is exactly function-neutral
+# at initialization and is applied only when a support-only inner CV beats the
+# analytic Parent. The response basis is LOLO: a target line never enters its
+# own basis. The first protocol supports rank 32/64 and N=8/16/32/64.
+# This single default-false switch also controls the raw-index strict-N-shot
+# data gate; there is deliberately no second switch or copied support list.
+parent_residual_fewshot_adapter_enabled: false
+parent_residual_fewshot_adapter_artifact_path: "resources/artifacts/parent_residual_gene_dit/replogle_fewshot_parent_rank64_strict_nshot_min32_v2.npz"
+parent_residual_fewshot_adapter_artifact_sha256: "065da1e850db9999c5af0a52beb38c5e7a97c219a280c0832a4d81bd939a4b94"
+# Required when enabled; artifact-aligned ID (for example, resolve HepG2 from
+# the artifact cellline_names instead of assuming a runtime covariate ID).
+parent_residual_fewshot_adapter_heldout_deployment_line_id: 0  # hepg2
+parent_residual_fewshot_adapter_rank: 64
+parent_residual_fewshot_adapter_support_size: 64
+parent_residual_fewshot_adapter_ridge_lambdas: [0.001, 0.01, 0.1, 1.0, 10.0]
+# Refit the analytic Parent y=scale*x floor from exactly the episode's N
+# target-line support perturbations; never reuse artifact full-support scale.
+parent_residual_fewshot_parent_calibration_lambdas: [0.0001, 0.001, 0.01, 0.1, 1.0]
+parent_residual_fewshot_parent_calibration_default_lambda: 0.01
+parent_residual_fewshot_adapter_donor_ridge: 0.01
+parent_residual_fewshot_adapter_cv_folds: 4
+parent_residual_fewshot_adapter_minimum_cv_gain: 0.0
+parent_residual_fewshot_adapter_seed: 42
+parent_residual_fewshot_adapter_gate_maximum: 1.0
+
+# Per-cell Transformer sequence is 128 gene modules, never the cell-set axis.
+parent_residual_num_modules: 128
+parent_residual_hidden_dim: 256
+parent_residual_depth: 8
+parent_residual_num_heads: 8
+parent_residual_condition_dim: 2000
+parent_residual_time_embedding_dim: 256
+parent_residual_mlp_ratio: 4.0
+parent_residual_transformer_dropout: 0.0
+parent_residual_decoder_chunk_size: 256
+parent_residual_norm_eps: 1.0e-6
+
+# Optional full-bank conditioning. False preserves the exact legacy four-token
+# state_dict and forward path. When enabled, the perturbation query retrieves
+# all 128 Child anchors and the resulting 132-token memory is reused per layer.
+parent_residual_strong_condition_memory_enabled: false
+parent_residual_strong_condition_num_heads: 8
+parent_residual_strong_condition_child_chunk_size: 32
+parent_residual_strong_condition_adaln_hidden_ratio: 2.0
+
+# Direct per-layer Main-query -> fixed source-Control key/value reads. Turning
+# this off is the isolated no-source-reference-attention paper ablation; the
+# source still remains the rectified-flow starting state.
+parent_residual_source_reference_attention_enabled: true
+# Optional numerical guard for the persistent source-reference residual. Null
+# preserves the historical forward exactly; a positive value applies
+# b*tanh(gate/b) only to this residual gate.
+parent_residual_source_reference_gate_limit: null
+# Compute the final gene-wise velocity projection in FP32 before group
+# centring. This protects small cell-to-cell differences from bf16
+# cancellation when a common component is present.
+parent_residual_velocity_output_fp32: false
+
+# Context exposed to the shared flow field. `population_only` removes Child
+# state tokens/retrieval from the field while retaining learned source routing,
+# matching, real-Control starts, and the Parent predictor.
+parent_residual_field_context_mode: hierarchical
+
+# Gene-to-module assignment used by the Gene-DiT tokenizers and decoders.
+# The ablation shuffles the artifact assignment with a local RNG while exactly
+# preserving all 128 module sizes and without changing global training RNG.
+parent_residual_gene_partition_mode: artifact
+parent_residual_gene_partition_seed: 42
+
+# Optional hierarchical split. Parent/condition remain the global memory used by
+# every block and AdaLN; selected/routed Child state enters only through
+# zero-gated main-stream adapters in the final N blocks. The first implementation
+# is intentionally incompatible with StrongMemory so its scientific effect is
+# isolated and auditable.
+parent_residual_global_local_memory_split_enabled: false
+parent_residual_local_child_memory_last_n_layers: 0
+# Optional asymmetric tail: keep updating the response/Main stream while the
+# Control stream becomes a fixed reference. Must lie in [0, depth); zero is the
+# exact historical path and the first implementation excludes StrongMemory.
+parent_residual_response_only_last_n_layers: 0
+
+# Independent Parent/Child context and biological matcher dimensions. These
+# names deliberately cannot collide with the Gene-DiT width/head settings.
+parent_residual_anchor_capacity: 128
+parent_residual_context_hidden_dim: 128
+parent_residual_context_heads: 8
+parent_residual_context_parent_depth: 2
+parent_residual_context_dropout: 0.0
+parent_residual_context_max_child_similarity: 0.85
+# Training-only Child-context ablation. `native` is the exact historical path.
+# `global_replicated` preserves K/S/masks while replacing every active Child
+# with the occupancy-weighted global control mean and uniform occupancy.
+parent_residual_child_context_mode: native
+
+parent_residual_match_endpoint_cost_weight: 1.0
+parent_residual_match_direction_cost_weight: 0.25
+parent_residual_match_magnitude_cost_weight: 0.05
+parent_residual_match_temperature: 0.25
+# Optional optimizer-step Hungarian curriculum; false retains epoch scheduling.
+parent_residual_positive_multiplicity_step_enabled: false
+parent_residual_positive_multiplicity_step_values: [32, 16, 8, 4, 2, 1]
+parent_residual_positive_multiplicity_step_transitions: [500, 1200, 2200, 3500, 5000]
+
+# Source x0 = calibrated Parent + centred Child residual + within-state noise.
+# The first precision run is a strict Parent source; beta=.25 is the next
+# planned ablation after the Parent run clears the formal evaluation gate.
+parent_residual_beta: 0.0
+parent_residual_beta_std: 0.0
+parent_residual_prior_stochastic: true
+# legacy is exact historical row-wise sampling. quota and stratified aggregate
+# allocations across rows sharing dataset/cell-line/perturbation at inference.
+parent_residual_inference_child_sampling_mode: legacy
+# Target-free Child distribution used to choose the empirical x0 member.
+# `occupancy` removes learned/matched source routing but keeps all downstream
+# architecture and losses intact.
+parent_residual_source_selection_mode: router
+parent_residual_correction_max_scale: 0.05
+
+# Optional factorized Parent correction exit tied to the response Gene-DiT
+# tokenizer identity. False allocates no module and preserves legacy state/RNG.
+# `replace` forces the Parent output through the tied exit; `residual` adds it
+# to the historical dense raw correction; `bounded_residual` additionally
+# enforces a per-example RMS trust budget relative to the legacy Parent exit.
+# The safe first arm reads the shared identity one-way so Parent losses cannot
+# rewrite flow tokenization.
+parent_residual_tied_gene_correction_enabled: false
+parent_residual_tied_gene_correction_rank: 64
+parent_residual_tied_gene_correction_mode: replace
+# Independent switch for the hard Parent-relative RMS trust budget. Keeping
+# `mode: residual` preserves the historical module construction path.
+parent_residual_tied_gene_correction_bounded_enabled: false
+# In `residual` this is a fixed multiplier. In `bounded_residual` it is both
+# the multiplier and a hard maximum tied/legacy RMS ratio.
+parent_residual_tied_gene_correction_residual_scale: 1.0
+parent_residual_tied_gene_correction_detach_gene_identity: true
+
+# Optional Child-aware Parent Module Decoder. False preserves the historical
+# dense correction head, state_dict keys, initialization order and RNG stream.
+# When enabled, four perturbation-conditioned latents retrieve all 128 valid
+# Child tokens with occupancy and detached inference-Router guidance. Two
+# D=256 cross-attention/SwiGLU blocks decode 128 fixed artifact modules before
+# the existing 0.05*tanh correction and analytic Parent anchor are applied.
+parent_residual_parent_module_decoder_enabled: false
+# Safe first arm: detach the new full-Child tokens/occupancy branch. The legacy
+# routed token remains differentiable exactly as before, so this does not claim
+# to block every context-encoder gradient. Set false only for a joint ablation.
+parent_residual_parent_module_decoder_detach_child_context: true
+# Add beta*log(router_probability) to latent-to-Child attention logits.
+parent_residual_parent_module_decoder_router_beta: 0.5
+
+# Optional B1 bridge: retain the historical dense Parent MLP and add only the
+# full-Child-minus-collapsed-Child consensus contrast from the module decoder.
+# The bridge is initialized behind the decoder's sole zero output projection;
+# false therefore preserves legacy state_dict, output and RNG exactly.
+parent_residual_child_consensus_bridge_enabled: false
+# Safe one-way arm. Parent/perturbation/routed/prior bridge semantics are always
+# detached; true additionally detaches direct Child tokens and occupancy. The
+# same routed token remains live through the untouched legacy Parent MLP.
+parent_residual_child_consensus_bridge_detach_child_context: true
+parent_residual_child_consensus_bridge_router_beta: 0.5
+# Per-condition realized correction delta cannot exceed this fraction of the
+# legacy correction RMS. The implementation is a parameter-free convex clip.
+parent_residual_child_consensus_bridge_max_delta_to_legacy_ratio: 0.25
+# A small correction-space cold-start floor prevents a zero legacy correction
+# from permanently starving the bridge. It yields an initial 2.5e-5 delta cap.
+parent_residual_child_consensus_bridge_bootstrap_reference_rms: 1.0e-4
+
+# Optional joint soft-gated Parent regression.  It reuses the online S
+# classification head and changes the Parent delta to
+# (1-blend)*legacy_delta + blend*pi*bounded_slab.  False/blend=0 preserve the
+# historical Parent exactly; no additional metric-specific loss is required.
+parent_residual_soft_gated_regression_enabled: false
+parent_residual_soft_gate_blend: 0.0
+# C1 detaches only the gate used by Parent regression; C2 keeps joint gradients.
+parent_residual_soft_gate_detach_regression: false
+# The SoftGateBlendSchedule callback owns scheduling; this mirrored value is
+# validated at startup and keeps the resolved training contract explicit.
+parent_residual_soft_gate_warmup_steps: 0
+parent_residual_soft_gate_temperature: 1.0
+parent_residual_soft_gate_slab_scale: 1.0
+parent_residual_soft_gate_initial_probability: 0.95
+# Optional G10 target-response relation. False retains the historical dense
+# condition-to-2000 support projection and exact default state/RNG contract.
+# True replaces that dense support exit with a rank-r bilinear interaction
+# between the target/cell/context query and every learned response-gene key.
+# The key reuses Gene-DiT's complete learned gene identity plus a trainable
+# low-rank residual; it does not require an external 2000-gene artifact.
+parent_residual_gene_relation_enabled: false
+parent_residual_gene_relation_rank: 64
+
+# Optional empirical source: after Hungarian (train) or Router (inference)
+# selects a Child, sample one real control-cell residual from that exact
+# (cell-line, Child) reservoir. Parent-lock then removes finite-batch common
+# drift exactly. False preserves the centroid/Gaussian source and state_dict.
+parent_residual_real_control_source_enabled: false
+parent_residual_real_control_reservoir_path: null
+parent_residual_real_control_reservoir_sha256: null
+parent_residual_real_control_residual_scale: 1.0
+parent_residual_real_control_stochastic: true
+# `child` is the exact historical source. `global_marginal` ignores the
+# matcher/router Child ID and samples from the full control-cell marginal while
+# preserving the same empirical-residual source family.
+parent_residual_real_control_sampling_mode: child
+parent_residual_real_control_validate_prototypes: true
+parent_residual_real_control_grouping: celltype
+parent_residual_real_control_recenter: false
+parent_residual_real_control_prototype_atol: 2.0e-5
+parent_residual_real_control_prototype_rtol: 2.0e-4
+
+# Optional residual-space FM. False preserves the legacy training/sampler.
+# The first locked run uses one homogeneous 64-cell condition microbatch.
+parent_residual_locked_flow_enabled: false
+parent_residual_no_flow_enabled: false
+parent_residual_direct_endpoint_enabled: false
+parent_residual_direct_mlp_hidden_dim: 1024
+parent_residual_direct_mlp_depth: 3
+parent_residual_direct_mlp_dropout: 0.1
+parent_residual_locked_min_group_cells: 8
+# The projected flow cannot observe group-common raw velocity. A positive
+# weight gives that null-space component its explicit zero target.
+parent_residual_common_velocity_loss_weight: 0.0
+
+# Strict no-Child baseline that uses the inference-safe predicted Parent mean
+# plus a flat/global real-control residual as the ordinary rectified-flow t=0
+# state. Unlike Parent-locked residual flow, this path learns the complete
+# expression-space velocity and may change the endpoint bulk mean.
+parent_residual_strict_direct_flow_enabled: false
+
+# Optional C1 experiment: let the existing Child/Gene-DiT velocity carry the
+# condition common mode instead of discarding it and restoring the Parent mean.
+# This is a behavioural switch only (no new checkpoint parameters). Keeping it
+# false preserves the original Parent-locked flow and sampling path exactly.
+parent_residual_child_mean_flow_enabled: false
+parent_residual_child_mean_loss_weight: 1.0
+parent_residual_child_mean_endpoint_blend: 1.0
+
+# Optional Child-guided Parent residual. The existing Parent is always P0;
+# target-free Router-selected Child endpoints only propose a bounded residual.
+# False adds no module/state/RNG use and preserves the historical Parent path.
+parent_residual_child_guidance_enabled: false
+# `residual_gate` is the historical opt-in implementation. The new
+# `positive_parallel` mode treats the matched Child proposal as a detached
+# teacher of Parent amplitude and never injects its orthogonal/raw residual.
+parent_residual_child_guidance_mode: residual_gate
+# Top-K probabilities keep their original mass (no renormalization); omitted
+# mass therefore falls back exactly to P0.
+parent_residual_child_guidance_top_k: 32
+parent_residual_child_guidance_max_rms_ratio: 0.10
+# Low-capacity condition gate over perturbation query, Parent token and eight
+# Router/occupancy confidence statistics. Its output projection starts at zero.
+parent_residual_child_guidance_gate_hidden_dim: 32
+parent_residual_child_guidance_max_alpha: 0.25
+# Parent ranking losses initially cannot rewrite the matching Router. Child
+# decoder gradients remain available but are reduced by this backward-only scale.
+parent_residual_child_guidance_detach_router_probabilities: true
+parent_residual_child_guidance_gradient_scale: 0.10
+parent_residual_child_guidance_start_step: 500
+parent_residual_child_guidance_warmup_steps: 1500
+parent_residual_child_guidance_max_coupling: 1.0
+# Positive-parallel inference/training contract:
+# P = P0 + coupling * scale * clip(<q,d>/||d||^2,0,cap) * d.
+parent_residual_child_guidance_parallel_scale: 0.10
+parent_residual_child_guidance_parallel_max_projection: 1.0
+# Optional train-only hinge: the guided endpoint's per-row MSE may not exceed
+# the detached unguided P0 MSE. Zero preserves the historical loss exactly.
+parent_residual_child_guidance_mse_no_reg_weight: 0.0
+
+# Optional condition-macro Parent endpoint ranking against the complete
+# train-only, same-cell-line perturbation bank. The master weight is exactly
+# zero by default, so the historical loss tensor and checkpoint state are
+# untouched. Targets and bank rows are detached teachers; gradients reach only
+# the final Parent endpoint (including an enabled Child-guidance residual).
+parent_residual_parent_listwise_pds_weight: 0.0
+parent_residual_parent_listwise_pds_ranking_mode: listwise
+parent_residual_parent_listwise_pds_l1_weight: 1.0
+parent_residual_parent_listwise_pds_l2_weight: 1.0
+parent_residual_parent_listwise_pds_cos_weight: 1.0
+parent_residual_parent_listwise_pds_l1_temperature: 0.05
+parent_residual_parent_listwise_pds_l2_temperature: 0.05
+parent_residual_parent_listwise_pds_cos_temperature: 0.05
+parent_residual_parent_listwise_pds_margin: 0.0
+parent_residual_parent_listwise_pds_positive_fit_weight: 0.0
+parent_residual_parent_listwise_pds_no_reg_weight: 0.0
+parent_residual_parent_listwise_pds_chunk_size: 256
+
+# Optional full-bank PDS ranking applied directly to the mean-carrying Child
+# endpoint. The master weight is zero by default, so legacy/F05 loss graphs are
+# unchanged. Candidate signatures are train-only and restricted to the same
+# cell line; the current perturbation is always excluded from its negative bank.
+parent_residual_child_endpoint_pds_weight: 0.0
+parent_residual_child_endpoint_pds_l1_weight: 1.0
+parent_residual_child_endpoint_pds_l2_weight: 1.0
+parent_residual_child_endpoint_pds_cos_weight: 1.0
+parent_residual_child_endpoint_pds_l1_temperature: 0.05
+parent_residual_child_endpoint_pds_l2_temperature: 0.05
+parent_residual_child_endpoint_pds_cos_temperature: 0.05
+parent_residual_child_endpoint_pds_margin: 0.0
+parent_residual_child_endpoint_positive_fit_weight: 0.0
+parent_residual_child_endpoint_no_reg_weight: 0.0
+parent_residual_child_endpoint_pds_chunk_size: 256
+
+# Master switch for target-derived Child matching guidance.  False is a
+# fail-closed, target-free ablation: native Child context and real-control
+# reservoirs remain, but target encoding, matcher, posterior/Router teachers,
+# and every match-specific loss/log are skipped.
+parent_residual_matching_guidance_enabled: true
+
+# Target-aware Child assignments may construct the early FM source, then
+# anneal to the target-free inference Router.  This master switch is off by
+# default, so old checkpoints and training are byte-for-byte unaffected.
+parent_residual_matched_set_enabled: false
+# Deliberately insufficient by itself: the launcher also requires a pinned
+# checkpoint hash, exact step/epoch/run name, and a successful full-state
+# preflight. This flag only lets model construction preserve a resumed step.
+parent_residual_matched_resume_opt_in: false
+parent_residual_posterior_start_fraction: 1.0
+parent_residual_posterior_end_fraction: 0.0
+parent_residual_posterior_transition_start_step: 500
+parent_residual_posterior_transition_end_step: 5000
+parent_residual_posterior_curve: cosine
+parent_residual_posterior_source_stochastic: true
+
+# Permutation-invariant endpoint-set supervision in a fixed, whitened PCA
+# space.  The outer weight controls its scale relative to FM; the component
+# weights below only set the internal balance.
+parent_residual_set_loss_weight: 0.0
+parent_residual_set_pca_path: null
+parent_residual_set_pca_sha256: null
+parent_residual_set_pca_components: 64
+parent_residual_set_energy_weight: 1.0
+parent_residual_set_log_variance_weight: 0.25
+parent_residual_set_correlation_weight: 0.05
+parent_residual_set_mean_weight: 0.0
+parent_residual_set_min_cells_per_group: 8
+parent_residual_set_max_cells_per_group: 256
+parent_residual_set_normalize_projection_distance: true
+parent_residual_set_eps: 1.0e-6
+
+# P2 train-only DE-aware residual objectives. Disabled by default; current
+# launchers do not opt in.
+parent_residual_de_aware_enabled: false
+parent_residual_de_aware_artifact_path: null
+parent_residual_de_aware_artifact_sha256: null
+parent_residual_de_aware_signed_wilcoxon_weight: 2.0e-4
+parent_residual_de_aware_zero_rate_weight: 2.0e-4
+parent_residual_de_aware_log_variance_weight: 1.0e-4
+parent_residual_de_aware_quantile_weight: 1.0e-4
+parent_residual_de_aware_rank_weight: 2.0e-5
+parent_residual_de_aware_call_weight: 1.0e-4
+parent_residual_de_aware_warmup_steps: 500
+parent_residual_de_aware_min_cells_per_group: 8
+parent_residual_de_aware_gene_chunk_size: 256
+parent_residual_de_aware_wilcoxon_temperature_scale: 0.2
+parent_residual_de_aware_wilcoxon_temperature_min: 3.0e-3
+parent_residual_de_aware_wilcoxon_temperature_max: 3.0e-2
+parent_residual_de_aware_zero_threshold: 0.0
+parent_residual_de_aware_zero_temperature: 3.0e-3
+parent_residual_de_aware_variance_eps: 1.0e-6
+parent_residual_de_aware_quantile_scale_floor: 3.0e-3
+parent_residual_de_aware_quantile_scale_ceiling: 1.0e-1
+parent_residual_de_aware_quantile_levels: [0.0, 0.25, 0.5, 0.75, 0.9]
+parent_residual_de_aware_rank_temperature: 0.5
+parent_residual_de_aware_rank_max_positive: 256
+parent_residual_de_aware_rank_max_negative: 256
+parent_residual_de_aware_call_z_threshold: 4.0
+parent_residual_de_aware_call_temperature: 0.5
+parent_residual_de_aware_call_false_positive_weight: 2.0
+parent_residual_de_aware_gradient_cap_ratio: 0.3
+parent_residual_de_aware_gradient_cap_eps: 1.0e-12
+
+parent_residual_hurdle_geometry_enabled: false
+parent_residual_sparse_support_enabled: false
+parent_residual_hurdle_artifact_path: null
+parent_residual_hurdle_artifact_sha256: null
+parent_residual_hurdle_source_h5ad_path: null
+parent_residual_hurdle_source_h5ad_sha256: null
+parent_residual_hurdle_alpha: 1.0
+parent_residual_sparse_head_weight: 1.0e-3
+parent_residual_sparse_endpoint_consistency_weight: 5.0e-4
+parent_residual_sparse_signature_weight: 1.0e-3
+parent_residual_sparse_signature_support_weight: 1.0
+parent_residual_sparse_signature_null_weight: 1.0
+parent_residual_sparse_signature_pds_l1_weight: 1.0
+parent_residual_sparse_signature_pds_l2_weight: 1.0
+parent_residual_sparse_signature_pds_cos_weight: 1.0
+parent_residual_sparse_signature_no_reg_weight: 1.0
+parent_residual_sparse_signature_pds_margin: 5.0e-3
+parent_residual_sparse_hard_rank_weight: 0.0
+parent_residual_sparse_hard_rank_margin: 0.0
+parent_residual_sparse_hard_rank_temperature: 0.5
+parent_residual_sparse_hard_rank_max_positive: 256
+parent_residual_sparse_hard_rank_max_negative: 256
+parent_residual_sparse_joint_context_enabled: false
+parent_residual_sparse_warmup_steps: 500
+parent_residual_sparse_gradient_cap_ratio: 0.2
+parent_residual_sparse_gradient_cap_eps: 1.0e-12
+parent_residual_sparse_zero_temperature: 3.0e-3
+parent_residual_sparse_zero_rate_confidence_tau: 64.0
+
+
+# Explicit, small Hungarian teacher weights.  These are separate from the
+# legacy Parent/router auxiliary and activate only on the matched-set path.
+parent_residual_teacher_delta_weight: 0.0
+parent_residual_teacher_direction_weight: 0.0
+parent_residual_teacher_magnitude_weight: 0.0
+parent_residual_teacher_latent_weight: 0.0
+
+# Explicit objectives added outside the legacy Anchor-Bridge auxiliary scale.
+parent_residual_parent_mse_weight: 1.0
+parent_residual_parent_direction_weight: 2.0e-4
+parent_residual_parent_pearson_weight: 2.0e-4
+parent_residual_correction_l2_weight: 1.0e-2
+parent_residual_router_kl_weight: 5.0e-4
+parent_residual_latent_match_weight: 5.0e-5
+
+# The new path does not use legacy gene endpoint/gate/balance losses.
+# When enabled, train Router on equal-condition KL(stopgrad(q-bar) || p-bar)
+# and keep the historical per-cell KL only as a diagnostic.
+parent_residual_condition_router_kl_enabled: false
+cell_detr_delta_loss_weight: 0.0
+cell_detr_direction_loss_weight: 0.0
+cell_detr_magnitude_loss_weight: 0.0
+cell_detr_parent_auxiliary_loss_weight: 0.0
+cell_detr_gate_loss_weight: 0.0
+cell_detr_compactness_loss_weight: 0.0
+cell_detr_separation_loss_weight: 0.0
+cell_detr_balance_loss_weight_start: 0.0
+cell_detr_balance_loss_weight_end: 0.0
+cell_detr_router_cost_weight: 0.0
+
+# No batch-level classifier-free dropout in the first precision run. Formal
+# sampling uses guidance=0, so train and inference see the same conditions.
+p_drop_cond: 0.0
+p_drop_control: 0.0

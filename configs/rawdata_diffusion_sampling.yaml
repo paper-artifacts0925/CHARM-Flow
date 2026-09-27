@@ -1,0 +1,51 @@
+# Top-level config for sampling entrypoint
+
+defaults:
+  - _self_
+  - trainer: base
+  - lightning: base
+  - data: pbmc_finetune
+  - optimization: base
+  - path: trixie_path
+  - model: base
+  - cov_encoding: trixie_onehot
+
+# Run naming and output
+run_name: sampling
+save_dir_path: null # automatically filled as "{trainer.default_root_dir}/{run_name}"
+
+# Input checkpoint and device
+model_checkpoint_path: null # set via CLI: model_checkpoint_path=weights/model.pt
+device: "auto" # "auto", "cpu", "cuda", "cuda:0", etc.
+
+# Sampling runtime options
+sampling:
+  # Data mode
+  sample_unperturbed: false
+  split: test
+  fixed_cells_per_perturbation: null
+  cells_per_source: null
+  max_perturbations: null
+
+  # Batch generation
+  num_sampled_batches: 4
+  batch_size: ${..optimization.micro_batch_size}
+
+  # Sampler algorithm
+  use_ddim: true
+  clip_denoised: true
+  progress: true
+
+  # Conditioning switches
+  guidance_strength: 1.0
+  initial_state: gaussian # gaussian, control_context
+
+  # DDPM / DDIM controls
+  start_time: 100
+  nw: 0.5
+  start_guide_steps: 500
+  eta: 0.0
+
+  # Output format
+  output_format: "npz" # "npz", "h5", "csv"
+  output_dir: null # set automatically if null
